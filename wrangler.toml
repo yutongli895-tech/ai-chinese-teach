@@ -1,0 +1,8 @@
+name = "ai-chinese-teach"
+pages_build_output_dir = "dist"
+
+# D1 Database Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "ai-chinese-teach-db"
+database_id = "REPLACE_WITH_YOUR_DATABASE_ID"

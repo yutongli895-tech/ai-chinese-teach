@@ -12,11 +12,12 @@ import { AIAssistant } from "./components/AIAssistant";
 import { ReadingDrawer } from "./components/ReadingDrawer";
 import { initialResources } from "./data/mockData";
 import { motion, AnimatePresence } from "motion/react";
+import { storage } from "./lib/storage";
 import { cn } from "./lib/utils";
 import { ArrowUp, X } from "lucide-react";
 
 function App() {
-  const [resources, setResources] = useState<Resource[]>(initialResources);
+  const [resources, setResources] = useState<Resource[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authType, setAuthType] = useState<"login" | "register">("login");
@@ -26,6 +27,15 @@ function App() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
+
+  // Load resources on mount and when role changes (e.g. returning from admin)
+  useEffect(() => {
+    const loadResources = async () => {
+      const data = await storage.getResources();
+      setResources(data);
+    };
+    loadResources();
+  }, [userRole]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -39,14 +49,15 @@ function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleAddResource = (newResource: Omit<Resource, "id" | "date" | "likes">) => {
+  const handleAddResource = async (newResource: Omit<Resource, "id" | "date" | "likes">) => {
     const resource: Resource = {
       ...newResource,
       id: Math.random().toString(36).substr(2, 9),
       date: new Date().toISOString().split("T")[0],
       likes: 0,
     };
-    setResources([resource, ...resources]);
+    const updatedResources = await storage.saveResource(resource);
+    setResources(updatedResources);
   };
 
   const handleLoginSuccess = (role: "admin" | "user") => {

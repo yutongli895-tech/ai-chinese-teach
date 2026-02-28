@@ -14,10 +14,11 @@ import {
   CheckCircle,
   XCircle
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { SubmissionModal } from "./SubmissionModal";
 import { Resource } from "./ResourceCard";
+import { storage } from "../lib/storage";
 
 const data = [
   { name: '周一', uv: 4000, pv: 2400, amt: 2400 },
@@ -36,39 +37,26 @@ interface AdminDashboardProps {
 export function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
-  const [mockContent, setMockContent] = useState<Resource[]>([
-    {
-        id: "1",
-        title: "AI 辅助古诗文教学的实践探索",
-        description: "探讨如何利用生成式 AI 帮助学生理解古诗意境...",
-        type: "article",
-        author: "张老师",
-        date: "2024-03-15",
-        tags: ["古诗文", "AI教学"],
-        link: "#",
-        likes: 45
-    },
-    {
-        id: "2",
-        title: "高中语文写作素材库 (2024版)",
-        description: "整理了2024年最新的高考作文素材...",
-        type: "resource",
-        author: "李教研",
-        date: "2024-03-14",
-        tags: ["写作", "高考"],
-        link: "#",
-        likes: 120
-    }
-  ]);
+  const [mockContent, setMockContent] = useState<Resource[]>([]);
 
-  const handleAddResource = (newResource: Omit<Resource, "id" | "date" | "likes">) => {
+  // Load resources on mount
+  useEffect(() => {
+    const loadResources = async () => {
+      const data = await storage.getResources();
+      setMockContent(data);
+    };
+    loadResources();
+  }, []);
+
+  const handleAddResource = async (newResource: Omit<Resource, "id" | "date" | "likes">) => {
     const resource: Resource = {
       ...newResource,
       id: Math.random().toString(36).substr(2, 9),
       date: new Date().toISOString().split("T")[0],
       likes: 0,
     };
-    setMockContent([resource, ...mockContent]);
+    const updatedResources = await storage.saveResource(resource);
+    setMockContent(updatedResources);
     setIsSubmissionModalOpen(false);
   };
 
