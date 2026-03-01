@@ -14,8 +14,6 @@ export function AuthModal({ isOpen, onClose, type, onSwitchType, onLoginSuccess 
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [code, setCode] = useState("");
-  const [isCodeSent, setIsCodeSent] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -48,10 +46,6 @@ export function AuthModal({ isOpen, onClose, type, onSwitchType, onLoginSuccess 
     }
   };
 
-  const handleSendCode = async () => {
-      setIsCodeSent(true);
-      // Simulate sending code
-  }
 
   return (
     <AnimatePresence>
@@ -96,35 +90,12 @@ export function AuthModal({ isOpen, onClose, type, onSwitchType, onLoginSuccess 
                     type="email"
                     required
                     className="flex h-10 w-full rounded-md border border-stone-200 bg-white pl-9 pr-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-stone-400"
-                    placeholder="name@example.com"
+                    placeholder="您的邮箱地址"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     />
                 </div>
               </div>
-
-              {type === "register" && (
-                  <div className="grid gap-2">
-                    <label className="text-sm font-medium leading-none text-stone-700">验证码</label>
-                    <div className="flex gap-2">
-                        <input
-                        required
-                        className="flex h-10 w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-stone-400"
-                        placeholder="123456"
-                        value={code}
-                        onChange={e => setCode(e.target.value)}
-                        />
-                        <button 
-                            type="button"
-                            onClick={handleSendCode}
-                            disabled={isCodeSent || !email}
-                            className="whitespace-nowrap rounded-md bg-stone-100 px-3 text-sm font-medium text-stone-600 hover:bg-stone-200 disabled:opacity-50"
-                        >
-                            {isCodeSent ? "已发送" : "获取验证码"}
-                        </button>
-                    </div>
-                  </div>
-              )}
 
               <div className="grid gap-2">
                 <label className="text-sm font-medium leading-none text-stone-700">密码</label>
