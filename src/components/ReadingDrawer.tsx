@@ -3,6 +3,10 @@ import { X, BookOpen, ChevronLeft, Share2, Heart, Printer, Type, Minus, Plus } f
 import { useState } from "react";
 import { Resource } from "./ResourceCard";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 import { cn } from "../lib/utils";
 
 interface ReadingDrawerProps {
@@ -106,7 +110,12 @@ export function ReadingDrawer({ isOpen, onClose, resource, isDarkMode }: Reading
                 >
                   {resource.content ? (
                     <div className="markdown-body">
-                      <ReactMarkdown>{resource.content}</ReactMarkdown>
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm, remarkMath]}
+                        rehypePlugins={[rehypeKatex]}
+                      >
+                        {resource.content}
+                      </ReactMarkdown>
                     </div>
                   ) : (
                     <div className="space-y-8">

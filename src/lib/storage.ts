@@ -2,21 +2,22 @@ import { Resource } from "../components/ResourceCard";
 import { initialResources } from "../data/mockData";
 
 export const storage = {
+  isMock: false,
   getResources: async (): Promise<Resource[]> => {
     try {
       const response = await fetch("/api/resources");
       
-      // Check if response is JSON
       const contentType = response.headers.get("content-type");
       if (!response.ok || !contentType || !contentType.includes("application/json")) {
         throw new Error("API not available or returned non-JSON");
       }
 
       const data = await response.json() as Resource[];
+      storage.isMock = false;
       return data;
     } catch (error) {
       console.warn("Falling back to local mock data:", error);
-      // Fallback to initial data if API fails (e.g. local dev without DB)
+      storage.isMock = true;
       return initialResources;
     }
   },
@@ -32,13 +33,15 @@ export const storage = {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to save resource");
+        const errorData = await response.json().catch(() => ({})) as { error?: string };
+        throw new Error(errorData.error || "Failed to save resource");
       }
 
       return await storage.getResources();
     } catch (error) {
       console.error("Failed to save resource:", error);
-      return [];
+      // Return current resources instead of empty list to avoid clearing UI
+      return await storage.getResources();
     }
   },
 
@@ -53,13 +56,15 @@ export const storage = {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update resource");
+        const errorData = await response.json().catch(() => ({})) as { error?: string };
+        throw new Error(errorData.error || "Failed to update resource");
       }
 
       return await storage.getResources();
     } catch (error) {
       console.error("Failed to update resource:", error);
-      return [];
+      // Return current resources instead of empty list to avoid clearing UI
+      return await storage.getResources();
     }
   },
 

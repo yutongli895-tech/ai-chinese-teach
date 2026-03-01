@@ -1,8 +1,12 @@
 import { motion, AnimatePresence } from "motion/react";
-import { X, Loader2, Eye, Edit3 } from "lucide-react";
-import { useState, FormEvent, useEffect } from "react";
+import { X, Loader2, Eye, Edit3, Bold, Italic, Heading, Link, Image, List, Quote, Code, Sigma, Type as TypeIcon, Minus, Plus } from "lucide-react";
+import { useState, FormEvent, useEffect, useRef } from "react";
 import { Resource } from "./ResourceCard";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 
 interface SubmissionModalProps {
   isOpen: boolean;
@@ -14,6 +18,8 @@ interface SubmissionModalProps {
 export function SubmissionModal({ isOpen, onClose, onSubmit, initialData }: SubmissionModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
+  const [editorFontSize, setEditorFontSize] = useState(14);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -47,6 +53,38 @@ export function SubmissionModal({ isOpen, onClose, onSubmit, initialData }: Subm
       });
     }
   }, [initialData, isOpen]);
+
+  const insertText = (before: string, after: string = "") => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    const selected = text.substring(start, end);
+    const replacement = before + selected + after;
+
+    const newContent = text.substring(0, start) + replacement + text.substring(end);
+    setFormData({ ...formData, content: newContent });
+
+    // Reset selection
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + before.length, end + before.length);
+    }, 0);
+  };
+
+  const toolbarActions = [
+    { icon: Bold, label: "加粗", action: () => insertText("**", "**") },
+    { icon: Italic, label: "斜体", action: () => insertText("*", "*") },
+    { icon: Heading, label: "标题", action: () => insertText("### ", "") },
+    { icon: List, label: "列表", action: () => insertText("- ", "") },
+    { icon: Quote, label: "引用", action: () => insertText("> ", "") },
+    { icon: Code, label: "代码", action: () => insertText("`", "`") },
+    { icon: Link, label: "链接", action: () => insertText("[", "](https://)") },
+    { icon: Image, label: "图片", action: () => insertText("![描述](", ")") },
+    { icon: Sigma, label: "公式", action: () => insertText("$", "$") },
+  ];
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -178,7 +216,28 @@ export function SubmissionModal({ isOpen, onClose, onSubmit, initialData }: Subm
 
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
-                  <label htmlFor="content" className="text-sm font-medium leading-none text-stone-700 dark:text-stone-300">正文内容 (Markdown)</label>
+                  <div className="flex items-center gap-4">
+                    <label htmlFor="content" className="text-sm font-medium leading-none text-stone-700 dark:text-stone-300">正文内容 (Markdown)</label>
+                    <div className="flex items-center gap-2 text-stone-400">
+                      <button 
+                        type="button"
+                        onClick={() => setEditorFontSize(Math.max(12, editorFontSize - 2))} 
+                        className="hover:text-stone-900 dark:hover:text-stone-100 p-1"
+                        title="减小字号"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </button>
+                      <TypeIcon className="h-4 w-4" />
+                      <button 
+                        type="button"
+                        onClick={() => setEditorFontSize(Math.min(24, editorFontSize + 2))} 
+                        className="hover:text-stone-900 dark:hover:text-stone-100 p-1"
+                        title="增大字号"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
                   <div className="flex items-center gap-1 rounded-lg border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900 p-1">
                     <button
                       type="button"
@@ -199,20 +258,45 @@ export function SubmissionModal({ isOpen, onClose, onSubmit, initialData }: Subm
                   </div>
                 </div>
                 
-                <div className="relative min-h-[250px] w-full rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-hidden">
-                  {activeTab === "edit" ? (
-                    <textarea
-                      id="content"
-                      className="h-full min-h-[250px] w-full bg-transparent px-4 py-3 text-sm text-stone-900 dark:text-stone-100 focus:outline-none"
-                      placeholder="在此输入 Markdown 格式的正文内容..."
-                      value={formData.content}
-                      onChange={e => setFormData({...formData, content: e.target.value})}
-                    />
-                  ) : (
-                    <div className="prose prose-stone dark:prose-invert prose-sm max-w-none h-full min-h-[250px] p-4 overflow-y-auto font-serif">
-                      <ReactMarkdown>{formData.content || "*暂无内容预览*"}</ReactMarkdown>
+                <div className="relative min-h-[300px] w-full rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-hidden flex flex-col">
+                  {activeTab === "edit" && (
+                    <div className="flex items-center gap-1 border-b border-stone-100 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-900/50 px-2 py-1 overflow-x-auto">
+                      {toolbarActions.map((item, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={item.action}
+                          className="p-2 rounded hover:bg-stone-200 dark:hover:bg-stone-800 text-stone-500 hover:text-stone-900 dark:hover:text-stone-100 transition-colors"
+                          title={item.label}
+                        >
+                          <item.icon className="h-4 w-4" />
+                        </button>
+                      ))}
                     </div>
                   )}
+                  
+                  <div className="flex-1 overflow-hidden">
+                    {activeTab === "edit" ? (
+                      <textarea
+                        id="content"
+                        ref={textareaRef}
+                        className="h-full min-h-[250px] w-full bg-transparent px-4 py-3 text-stone-900 dark:text-stone-100 focus:outline-none resize-none"
+                        style={{ fontSize: `${editorFontSize}px` }}
+                        placeholder="在此输入 Markdown 格式的正文内容..."
+                        value={formData.content}
+                        onChange={e => setFormData({...formData, content: e.target.value})}
+                      />
+                    ) : (
+                      <div className="prose prose-stone dark:prose-invert prose-sm max-w-none h-full min-h-[250px] p-4 overflow-y-auto font-serif">
+                        <ReactMarkdown 
+                          remarkPlugins={[remarkGfm, remarkMath]}
+                          rehypePlugins={[rehypeKatex]}
+                        >
+                          {formData.content || "*暂无内容预览*"}
+                        </ReactMarkdown>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 

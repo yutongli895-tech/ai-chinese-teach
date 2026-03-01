@@ -16,7 +16,8 @@ import {
   Edit2,
   Trash2,
   Sun,
-  Moon
+  Moon,
+  Loader2
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -46,37 +47,67 @@ export function AdminDashboard({ onLogout, isDarkMode, toggleDarkMode }: AdminDa
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [mockContent, setMockContent] = useState<Resource[]>([]);
+  const [adminSearchTerm, setAdminSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isUsingMock, setIsUsingMock] = useState(false);
+
+  const loadResources = async () => {
+    setIsLoading(true);
+    try {
+      const data = await storage.getResources();
+      setMockContent(data);
+      setIsUsingMock(storage.isMock);
+    } catch (error) {
+      console.error("Failed to load resources:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Load resources on mount
   useEffect(() => {
-    const loadResources = async () => {
-      const data = await storage.getResources();
-      setMockContent(data);
-    };
     loadResources();
   }, []);
 
   const handleAddResource = async (newResource: Omit<Resource, "id" | "date" | "likes">) => {
-    if (editingResource) {
-      const updatedResource: Resource = {
-        ...editingResource,
-        ...newResource,
-      };
-      const updatedResources = await storage.updateResource(updatedResource);
-      setMockContent(updatedResources);
-    } else {
-      const resource: Resource = {
-        ...newResource,
-        id: Math.random().toString(36).substr(2, 9),
-        date: new Date().toISOString().split("T")[0],
-        likes: 0,
-      };
-      const updatedResources = await storage.saveResource(resource);
-      setMockContent(updatedResources);
+    setIsLoading(true);
+    try {
+      if (editingResource) {
+        const updatedResource: Resource = {
+          ...editingResource,
+          ...newResource,
+        };
+        const updatedResources = await storage.updateResource(updatedResource);
+        if (updatedResources && updatedResources.length > 0) {
+          setMockContent(updatedResources);
+        } else {
+          // If update returns empty but we know we had data, reload
+          await loadResources();
+        }
+      } else {
+        const resource: Resource = {
+          ...newResource,
+          id: Math.random().toString(36).substr(2, 9),
+          date: new Date().toISOString().split("T")[0],
+          likes: 0,
+        };
+        const updatedResources = await storage.saveResource(resource);
+        setMockContent(updatedResources);
+      }
+    } catch (error) {
+      alert("操作失败: " + (error as Error).message);
+    } finally {
+      setIsLoading(false);
+      setIsSubmissionModalOpen(false);
+      setEditingResource(null);
     }
-    setIsSubmissionModalOpen(false);
-    setEditingResource(null);
   };
+
+  const filteredContent = mockContent.filter(item => 
+    item.title.toLowerCase().includes(adminSearchTerm.toLowerCase()) ||
+    item.author.toLowerCase().includes(adminSearchTerm.toLowerCase()) ||
+    item.description.toLowerCase().includes(adminSearchTerm.toLowerCase())
+  );
 
   const handleDelete = async (id: string) => {
     if (window.confirm("确定要删除这篇文章吗？此操作不可撤销。")) {
@@ -166,6 +197,15 @@ export function AdminDashboard({ onLogout, isDarkMode, toggleDarkMode }: AdminDa
         </header>
 
         <div className="p-8">
+            {isUsingMock && (
+                <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-900/20 dark:text-amber-400 flex items-center gap-3">
+                    <XCircle className="h-5 w-5" />
+                    <p>
+                        <strong>警告：</strong> 无法连接到数据库 API。当前显示的是本地演示数据，您的修改将不会被保存。
+                        请检查 Cloudflare D1 绑定是否正确设置为 <code>DB</code>。
+                    </p>
+                </div>
+            )}
             {activeTab === "overview" && (
                 <div className="space-y-8">
                     {/* Stats Cards */}
@@ -228,17 +268,29 @@ export function AdminDashboard({ onLogout, isDarkMode, toggleDarkMode }: AdminDa
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
                             <input 
                                 type="text" 
-                                placeholder="搜索文章..." 
-                                className={cn("h-11 w-full rounded-xl border pl-10 pr-4 text-sm focus:outline-none focus:ring-2 transition-all", isDarkMode ? "bg-stone-900 border-stone-800 text-stone-100 focus:ring-stone-700" : "bg-white border-stone-200 text-stone-900 focus:ring-stone-400")}
+                                placeholder="搜索文章标题、作者..." 
+                                value={adminSearchTerm}
+                                onChange={(e) => setAdminSearchTerm(e.target.value)}
+                                className={cn("h-11 w-full rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 pl-10 pr-4 text-sm text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-stone-400 dark:focus:ring-stone-700 transition-all")}
                             />
                         </div>
-                        <button 
-                            onClick={openAddModal}
-                            className={cn("flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-medium transition-all shadow-lg hover:scale-105", isDarkMode ? "bg-stone-100 text-stone-900 hover:bg-white" : "bg-stone-900 text-white hover:bg-stone-800")}
-                        >
-                            <Plus className="h-4 w-4" />
-                            发布文章
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button 
+                                onClick={loadResources}
+                                disabled={isLoading}
+                                className={cn("flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium border border-stone-200 dark:border-stone-800 hover:bg-stone-100 dark:hover:bg-stone-800 transition-all")}
+                            >
+                                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <TrendingUp className="h-4 w-4" />}
+                                刷新列表
+                            </button>
+                            <button 
+                                onClick={openAddModal}
+                                className={cn("flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-medium transition-all shadow-lg hover:scale-105", isDarkMode ? "bg-stone-100 text-stone-900 hover:bg-white" : "bg-stone-900 text-white hover:bg-stone-800")}
+                            >
+                                <Plus className="h-4 w-4" />
+                                发布文章
+                            </button>
+                        </div>
                     </div>
 
                     <div className={cn("rounded-2xl border shadow-sm overflow-hidden transition-colors duration-500", isDarkMode ? "bg-stone-900 border-stone-800" : "bg-white border-stone-200")}>
@@ -254,7 +306,7 @@ export function AdminDashboard({ onLogout, isDarkMode, toggleDarkMode }: AdminDa
                                 </tr>
                             </thead>
                             <tbody className={cn("divide-y", isDarkMode ? "divide-stone-800" : "divide-stone-100")}>
-                                {mockContent.map((item) => (
+                                {filteredContent.length > 0 ? filteredContent.map((item) => (
                                     <tr key={item.id} className={cn("transition-colors", isDarkMode ? "hover:bg-stone-800/30" : "hover:bg-stone-50/50")}>
                                         <td className={cn("px-6 py-4 font-medium", isDarkMode ? "text-stone-100" : "text-stone-900")}>{item.title}</td>
                                         <td className="px-6 py-4">
@@ -293,7 +345,13 @@ export function AdminDashboard({ onLogout, isDarkMode, toggleDarkMode }: AdminDa
                                             </div>
                                         </td>
                                     </tr>
-                                ))}
+                                )) : (
+                                    <tr>
+                                        <td colSpan={6} className="px-6 py-12 text-center text-stone-500">
+                                            {isLoading ? "正在加载资源..." : "暂无匹配的资源"}
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
