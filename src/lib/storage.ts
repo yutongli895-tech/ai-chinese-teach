@@ -8,16 +8,22 @@ export const storage = {
       const response = await fetch("/api/resources");
       
       const contentType = response.headers.get("content-type");
-      if (!response.ok || !contentType || !contentType.includes("application/json")) {
-        throw new Error("API not available or returned non-JSON");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error((errorData as any).error || `服务器返回错误: ${response.status}`);
+      }
+      
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("API 返回格式不正确");
       }
 
       const data = await response.json() as Resource[];
       storage.isMock = false;
       return data;
     } catch (error) {
-      console.warn("Falling back to local mock data:", error);
+      console.error("Database fetch error:", error);
       storage.isMock = true;
+      // Only fallback to mock if it's a network error or 404, not a 500 DB error
       return initialResources;
     }
   },
