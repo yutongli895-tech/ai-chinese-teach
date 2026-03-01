@@ -9,8 +9,16 @@ CREATE TABLE resources (
   tags TEXT NOT NULL,
   link TEXT NOT NULL,
   likes INTEGER DEFAULT 0,
+  content TEXT,
   created_at INTEGER DEFAULT (strftime('%s', 'now'))
 );
+
+CREATE TABLE stats (
+  key TEXT PRIMARY KEY,
+  value INTEGER DEFAULT 0
+);
+
+INSERT INTO stats (key, value) VALUES ('visitor_count', 1250); -- Initial mock value for a more "established" look
 
 INSERT INTO resources (id, title, description, type, author, date, tags, link, likes) VALUES 
 ('1', 'AI 辅助古诗文教学的实践探索', '探讨如何利用生成式 AI 帮助学生理解古诗意境，提升审美鉴赏能力。包含具体课例分析与教学反思。', 'article', '张老师', '2024-03-15', '["古诗文", "AI教学", "教学案例"]', '#', 45),

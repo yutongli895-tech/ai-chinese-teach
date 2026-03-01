@@ -11,7 +11,6 @@ const quotes = [
 
 export function DailyWisdom() {
   // Simple random selection for demo purposes
-  // In a real app, this could be based on the date
   const todayQuote = quotes[Math.floor(Math.random() * quotes.length)];
 
   return (
@@ -19,20 +18,20 @@ export function DailyWisdom() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, delay: 0.2 }}
-      className="relative mx-auto max-w-3xl px-6 py-12 text-center"
+      className="relative mx-auto max-w-4xl px-6 py-16 text-center"
     >
-      <div className="absolute left-1/2 top-0 -translate-x-1/2 text-stone-200/50">
-        <Quote className="h-24 w-24 rotate-180 opacity-20" />
+      <div className="absolute left-1/2 top-0 -translate-x-1/2 text-stone-200/30 dark:text-stone-800/30">
+        <Quote className="h-32 w-32 rotate-180 opacity-20" />
       </div>
       
-      <div className="relative z-10 space-y-4">
-        <h2 className="font-serif text-2xl font-medium tracking-wide text-stone-800 md:text-3xl leading-relaxed">
+      <div className="relative z-10 space-y-8">
+        <h2 className="font-serif text-3xl font-bold tracking-wider text-stone-800 dark:text-stone-200 md:text-4xl leading-relaxed">
           「{todayQuote.text}」
         </h2>
-        <div className="flex items-center justify-center gap-2 text-sm text-stone-500 font-light tracking-widest">
-            <span className="w-8 h-[1px] bg-stone-300"></span>
+        <div className="flex items-center justify-center gap-4 text-sm text-stone-500 dark:text-stone-500 font-light tracking-[0.3em] uppercase">
+            <span className="w-12 h-[1px] bg-stone-200 dark:bg-stone-800"></span>
             <span>{todayQuote.author} · {todayQuote.source}</span>
-            <span className="w-8 h-[1px] bg-stone-300"></span>
+            <span className="w-12 h-[1px] bg-stone-200 dark:bg-stone-800"></span>
         </div>
       </div>
     </motion.div>

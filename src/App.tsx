@@ -27,6 +27,24 @@ function App() {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
+  const [visitorCount, setVisitorCount] = useState<number>(0);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("theme") === "dark" || 
+        (!localStorage.getItem("theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+    }
+  }, [isDarkMode]);
 
   // Load resources on mount and when role changes (e.g. returning from admin)
   useEffect(() => {
@@ -36,6 +54,23 @@ function App() {
     };
     loadResources();
   }, [userRole]);
+
+  // Visitor Tracking
+  useEffect(() => {
+    const initStats = async () => {
+      // Track visit once per session
+      const hasTracked = sessionStorage.getItem("tracked_visit");
+      if (!hasTracked) {
+        await storage.trackVisit();
+        sessionStorage.setItem("tracked_visit", "true");
+      }
+      
+      // Fetch current stats
+      const stats = await storage.getStats();
+      setVisitorCount(stats.visitor_count);
+    };
+    initStats();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -70,16 +105,22 @@ function App() {
   };
 
   const handleResourceClick = (resource: Resource) => {
-    if (resource.type === 'article') {
-      setSelectedResource(resource);
-    } else {
+    if (resource.link && resource.link !== "#") {
       window.open(resource.link, '_blank');
+    } else {
+      setSelectedResource(resource);
     }
   };
 
   // If admin is logged in, show dashboard
   if (userRole === "admin") {
-      return <AdminDashboard onLogout={handleLogout} />;
+      return (
+        <AdminDashboard 
+          onLogout={handleLogout} 
+          isDarkMode={isDarkMode} 
+          toggleDarkMode={() => setIsDarkMode(!isDarkMode)} 
+        />
+      );
   }
 
   const filteredResources = resources.filter((resource) => {
@@ -95,23 +136,54 @@ function App() {
   });
 
   return (
-    <div className="min-h-screen font-sans text-stone-900 selection:bg-stone-200 selection:text-stone-900 relative">
+    <div className={cn(
+      "min-h-screen font-sans selection:bg-stone-200 selection:text-stone-900 relative transition-colors duration-500",
+      isDarkMode ? "dark" : ""
+    )}>
       {/* Global Background Layer */}
-      <div className="fixed inset-0 z-[-1]">
+      <div className="fixed inset-0 z-[-1] overflow-hidden">
         {/* Ink Wash Landscape Image */}
-        <img 
+        <motion.img 
+          initial={false}
+          animate={{ opacity: isDarkMode ? 0.3 : 0.7 }}
           src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=2000" 
           alt="Chinese Landscape Background" 
-          className="w-full h-full object-cover opacity-80"
+          className="w-full h-full object-cover transition-opacity duration-1000"
         />
-        {/* Strong Overlay for Readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-white/80 to-[#fcfaf8]" />
+        
+        {/* Dynamic Gradient Overlay */}
+        <div className={cn(
+          "absolute inset-0 transition-colors duration-1000",
+          isDarkMode 
+            ? "bg-gradient-to-b from-stone-950/90 via-stone-900/95 to-stone-950" 
+            : "bg-gradient-to-b from-white/60 via-stone-50/80 to-[#fcfaf8]"
+        )} />
+        
         {/* Paper Texture Overlay */}
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.04]" />
+        <div className="absolute inset-0 paper-texture opacity-40 dark:opacity-20" />
+        
+        {/* Decorative Vertical Text (Watermark style) */}
+        <div className="absolute right-12 top-32 hidden lg:block select-none pointer-events-none">
+          <span className="vertical-text font-cursive text-8xl text-stone-900/5 dark:text-stone-100/5 tracking-[0.5em]">
+            博学而笃志
+          </span>
+        </div>
+        <div className="absolute left-12 bottom-32 hidden lg:block select-none pointer-events-none">
+          <span className="vertical-text font-cursive text-8xl text-stone-900/5 dark:text-stone-100/5 tracking-[0.5em]">
+            切问而近思
+          </span>
+        </div>
       </div>
 
       <Header 
-        onOpenModal={() => setIsModalOpen(true)} 
+        onOpenModal={() => {
+          if (userRole !== "guest") {
+            setIsModalOpen(true);
+          } else {
+            setAuthType("login");
+            setIsAuthOpen(true);
+          }
+        }} 
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         onLoginClick={() => {
@@ -120,10 +192,12 @@ function App() {
         }}
         userRole={userRole}
         onLogout={handleLogout}
+        isDarkMode={isDarkMode}
+        toggleDarkMode={() => setIsDarkMode(!isDarkMode)}
       />
       
       <main className="flex-1 relative">
-        <Hero />
+        <Hero visitorCount={visitorCount} />
         
         <DailyWisdom />
 
@@ -155,7 +229,7 @@ function App() {
             </div>
             
             <div className="flex items-center gap-4 text-xs font-serif text-stone-500 tracking-wider">
-                <span>访客统计: 12,345</span>
+                <span>访客统计: {visitorCount.toLocaleString()}</span>
                 <span>收录 {filteredResources.length} 篇</span>
             </div>
           </div>

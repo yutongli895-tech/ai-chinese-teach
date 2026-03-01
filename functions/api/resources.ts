@@ -29,12 +29,12 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const { request, env } = context;
     const body = await request.json() as any;
 
-    const { id, title, description, type, author, date, tags, link, likes } = body;
+    const { id, title, description, type, author, date, tags, link, likes, content } = body;
 
     await env.DB.prepare(
-      "INSERT INTO resources (id, title, description, type, author, date, tags, link, likes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      "INSERT INTO resources (id, title, description, type, author, date, tags, link, likes, content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     )
-      .bind(id, title, description, type, author, date, JSON.stringify(tags), link, likes)
+      .bind(id, title, description, type, author, date, JSON.stringify(tags), link, likes, content || "")
       .run();
 
     return new Response(JSON.stringify({ success: true, resource: body }), {
@@ -42,6 +42,56 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     });
   } catch (error) {
     return new Response(JSON.stringify({ error: "Failed to create resource", details: String(error) }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+};
+
+export const onRequestPut: PagesFunction<Env> = async (context) => {
+  try {
+    const { request, env } = context;
+    const body = await request.json() as any;
+
+    const { id, title, description, type, author, date, tags, link, likes, content } = body;
+
+    await env.DB.prepare(
+      "UPDATE resources SET title = ?, description = ?, type = ?, author = ?, date = ?, tags = ?, link = ?, likes = ?, content = ? WHERE id = ?"
+    )
+      .bind(title, description, type, author, date, JSON.stringify(tags), link, likes, content || "", id)
+      .run();
+
+    return new Response(JSON.stringify({ success: true, resource: body }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: "Failed to update resource", details: String(error) }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+};
+
+export const onRequestDelete: PagesFunction<Env> = async (context) => {
+  try {
+    const { request, env } = context;
+    const url = new URL(request.url);
+    const id = url.searchParams.get("id");
+
+    if (!id) {
+      return new Response(JSON.stringify({ error: "Missing ID" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    await env.DB.prepare("DELETE FROM resources WHERE id = ?").bind(id).run();
+
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: "Failed to delete resource", details: String(error) }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });

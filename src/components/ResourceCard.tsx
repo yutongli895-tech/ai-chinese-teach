@@ -13,6 +13,7 @@ export interface Resource {
   tags: string[];
   link: string;
   likes: number;
+  content?: string; // Markdown content
 }
 
 interface ResourceCardProps {
@@ -85,15 +86,15 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({ resource, index, onT
   };
 
   const typeStyles = {
-    article: "text-stone-600 bg-stone-100/80",
-    resource: "text-emerald-700 bg-emerald-50/80",
-    tool: "text-indigo-600 bg-indigo-50/80",
+    article: "text-stone-600 dark:text-stone-400 bg-stone-100/80 dark:bg-stone-800/80",
+    resource: "text-emerald-700 dark:text-emerald-400 bg-emerald-50/80 dark:bg-emerald-900/30",
+    tool: "text-indigo-600 dark:text-indigo-400 bg-indigo-50/80 dark:bg-indigo-900/30",
   };
 
   const typeLabels = {
-    article: "Article / 文章",
-    resource: "Resource / 资源",
-    tool: "Tool / 工具",
+    article: "深度文章",
+    resource: "教学资源",
+    tool: "智能工具",
   };
 
   return (
@@ -101,30 +102,41 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({ resource, index, onT
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.08 }}
-      whileHover={{ y: -4 }}
+      whileHover={{ y: -6, scale: 1.01 }}
       onClick={handleCardClick}
       className={cn(
-        "group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white/60 backdrop-blur-md border border-white/50 p-6 shadow-[0_2px_10px_rgba(0,0,0,0.03)] transition-all hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)] hover:bg-white/80",
+        "group relative flex flex-col justify-between overflow-hidden rounded-2xl p-7 transition-all duration-500",
+        "bg-white/40 dark:bg-stone-900/40 backdrop-blur-sm",
+        "border border-stone-200/50 dark:border-stone-800/50",
+        "shadow-[0_4px_20px_rgba(0,0,0,0.02)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)]",
+        "hover:bg-white/80 dark:hover:bg-stone-900/80 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_20px_60px_rgba(0,0,0,0.5)]",
+        "hover:border-stone-300/50 dark:hover:border-stone-700/50",
         onClick && "cursor-pointer"
       )}
     >
-      <div className="space-y-4">
+      {/* Subtle Ink Pattern Overlay */}
+      <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/natural-paper.png')]" />
+      
+      {/* Decorative Corner Accent */}
+      <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-stone-100/50 dark:from-stone-800/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+      <div className="relative space-y-5">
         <div className="flex items-center justify-between">
           <span
             className={cn(
-              "inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors backdrop-blur-sm",
+              "inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest transition-colors backdrop-blur-sm",
               typeStyles[resource.type]
             )}
           >
             {typeLabels[resource.type]}
           </span>
-          <span className="text-[10px] text-stone-400 font-mono">
+          <span className="text-[10px] text-stone-400 dark:text-stone-500 font-mono tracking-wider">
             {resource.date}
           </span>
         </div>
         
         <div className="space-y-3">
-          <h3 className="font-serif text-xl font-bold tracking-tight text-stone-900 group-hover:text-stone-600 transition-colors leading-snug pr-6">
+          <h3 className="font-serif text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100 group-hover:text-stone-700 dark:group-hover:text-stone-300 transition-colors leading-tight pr-6">
             <a 
               href={resource.link} 
               target="_blank" 
@@ -133,7 +145,6 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({ resource, index, onT
               onClick={(e) => {
                 if (onClick) {
                   e.preventDefault();
-                  // Event will bubble up to card click
                 }
               }}
             >
@@ -141,51 +152,51 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({ resource, index, onT
               {resource.title}
             </a>
           </h3>
-          <p className="text-sm text-stone-600 line-clamp-2 leading-relaxed font-light">
+          <p className="text-[15px] text-stone-600 dark:text-stone-400 line-clamp-3 leading-relaxed font-light font-serif">
             {resource.description}
           </p>
         </div>
       </div>
 
-      <div className="mt-8 flex items-center justify-between border-t border-stone-200/50 pt-4">
-        <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-full bg-stone-100/80 flex items-center justify-center text-stone-500">
-                <User className="h-3 w-3" />
+      <div className="relative mt-10 flex items-center justify-between border-t border-stone-200/30 dark:border-stone-800/30 pt-5">
+        <div className="flex items-center gap-3">
+            <div className="h-7 w-7 rounded-full bg-stone-50 dark:bg-stone-900 border border-stone-100 dark:border-stone-800 flex items-center justify-center text-stone-400 dark:text-stone-500">
+                <User className="h-3.5 w-3.5" />
             </div>
-            <span className="text-xs font-medium text-stone-600">{resource.author}</span>
+            <span className="text-xs font-medium text-stone-600 dark:text-stone-400">{resource.author}</span>
         </div>
         
-        <div className="flex items-center gap-3 relative z-10">
+        <div className="flex items-center gap-4 relative z-10">
             <button 
                 onClick={handleLike}
                 className={cn(
-                    "flex items-center gap-1.5 text-xs font-medium transition-colors p-1.5 rounded-full hover:bg-stone-100/50",
-                    isLiked ? "text-red-500" : "text-stone-400 hover:text-stone-600"
+                    "flex items-center gap-1.5 text-xs font-medium transition-colors p-1.5 rounded-full hover:bg-stone-100/50 dark:hover:bg-stone-800/50",
+                    isLiked ? "text-red-500" : "text-stone-400 dark:text-stone-500 hover:text-stone-900 dark:hover:text-stone-200"
                 )}
             >
-                <Heart className={cn("h-3.5 w-3.5", isLiked && "fill-current")} />
+                <Heart className={cn("h-4 w-4", isLiked && "fill-current")} />
                 <span>{likes}</span>
             </button>
             
             <button 
                 onClick={handleShare}
-                className="flex items-center justify-center text-stone-400 hover:text-stone-600 transition-colors p-1.5 rounded-full hover:bg-stone-100/50"
+                className="flex items-center justify-center text-stone-400 dark:text-stone-500 hover:text-stone-900 dark:hover:text-stone-200 transition-colors p-1.5 rounded-full hover:bg-stone-100/50 dark:hover:bg-stone-800/50"
                 title="Share"
             >
                 {isCopied ? (
-                    <Check className="h-3.5 w-3.5 text-green-600" />
+                    <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
                 ) : (
-                    <Share2 className="h-3.5 w-3.5" />
+                    <Share2 className="h-4 w-4" />
                 )}
             </button>
 
-            <div className="h-3 w-px bg-stone-200" />
+            <div className="h-4 w-px bg-stone-200 dark:bg-stone-800" />
             <div className="flex gap-2">
-                {resource.tags.slice(0, 2).map(tag => (
+                {resource.tags.slice(0, 1).map(tag => (
                     <button 
                         key={tag} 
                         onClick={(e) => handleTagClickInternal(e, tag)}
-                        className="text-[10px] text-stone-500 font-mono opacity-70 hover:opacity-100 hover:text-stone-800 hover:underline transition-all cursor-pointer"
+                        className="text-[11px] text-stone-500 dark:text-stone-500 font-mono opacity-80 hover:opacity-100 hover:text-stone-900 dark:hover:text-stone-200 hover:underline transition-all cursor-pointer"
                     >
                         #{tag}
                     </button>
@@ -194,8 +205,8 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({ resource, index, onT
         </div>
       </div>
       
-      <div className="absolute top-6 right-6 opacity-0 -translate-x-2 translate-y-2 transition-all group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 pointer-events-none">
-        <ArrowUpRight className="h-5 w-5 text-stone-400" />
+      <div className="absolute top-7 right-7 opacity-0 -translate-x-3 translate-y-3 transition-all duration-500 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 pointer-events-none">
+        <ArrowUpRight className="h-6 w-6 text-stone-300 dark:text-stone-600" />
       </div>
     </motion.div>
   );

@@ -1,1 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;700&family=Inter:wght@300;400;600&display=swap');
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Noto Serif SC", serif;
+  --font-cursive: "Ma Shan Zheng", cursive;
+}
+
+@layer base {
+  :root {
+    --bg-paper: #fcfaf8;
+    --text-ink: #1c1917;
+    --accent-vermilion: #b91c1c;
+    --accent-jade: #065f46;
+  }
+
+  .dark {
+    --bg-paper: #0c0a09;
+    --text-ink: #e7e5e4;
+    --accent-vermilion: #ef4444;
+    --accent-jade: #10b981;
+  }
+
+  body {
+    @apply bg-[var(--bg-paper)] text-[var(--text-ink)] transition-colors duration-500;
+  }
+
+  h1, h2, h3, h4, .font-literary {
+    @apply font-serif tracking-tight;
+  }
+}
+
+@layer components {
+  .paper-texture {
+    background-image: url("https://www.transparenttextures.com/patterns/cream-paper.png");
+  }
+
+  .dark .paper-texture {
+    background-image: url("https://www.transparenttextures.com/patterns/dark-matter.png");
+    opacity: 0.4;
+  }
+
+  .ink-border {
+    @apply border-stone-200/60 dark:border-stone-800/60;
+  }
+
+  .vertical-text {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
+}
+
+.markdown-body {
+  @apply prose prose-stone dark:prose-invert max-w-none;
+  @apply prose-headings:font-serif prose-p:font-serif prose-p:leading-loose;
+}

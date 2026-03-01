@@ -11,7 +11,9 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@cloudflare/workers-types": "^4.20260301.1",
     "@google/genai": "^1.29.0",
+    "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.14",
     "@vitejs/plugin-react": "^5.0.4",
     "better-sqlite3": "^12.4.1",
@@ -22,6 +24,7 @@
     "motion": "^12.23.24",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.13.1",
     "recharts": "^3.7.0",
     "tailwind-merge": "^3.5.0",

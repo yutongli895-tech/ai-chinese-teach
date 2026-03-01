@@ -12,7 +12,7 @@ export const storage = {
         throw new Error("API not available or returned non-JSON");
       }
 
-      const data = await response.json();
+      const data = await response.json() as Resource[];
       return data;
     } catch (error) {
       console.warn("Falling back to local mock data:", error);
@@ -35,7 +35,6 @@ export const storage = {
         throw new Error("Failed to save resource");
       }
 
-      // After saving, re-fetch all resources to ensure consistency
       return await storage.getResources();
     } catch (error) {
       console.error("Failed to save resource:", error);
@@ -43,9 +42,65 @@ export const storage = {
     }
   },
 
+  updateResource: async (resource: Resource): Promise<Resource[]> => {
+    try {
+      const response = await fetch("/api/resources", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(resource),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update resource");
+      }
+
+      return await storage.getResources();
+    } catch (error) {
+      console.error("Failed to update resource:", error);
+      return [];
+    }
+  },
+
+  deleteResource: async (id: string): Promise<Resource[]> => {
+    try {
+      const response = await fetch(`/api/resources?id=${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete resource");
+      }
+
+      return await storage.getResources();
+    } catch (error) {
+      console.error("Failed to delete resource:", error);
+      return [];
+    }
+  },
+
   // For admin dashboard to delete or update (Placeholder for now)
   updateResources: async (resources: Resource[]) => {
-    // Implementation would require a batch update API or individual updates
     console.log("Update not implemented for API storage yet");
+  },
+
+  getStats: async (): Promise<{ visitor_count: number }> => {
+    try {
+      const response = await fetch("/api/stats");
+      if (!response.ok) throw new Error("Failed to fetch stats");
+      return await response.json();
+    } catch (error) {
+      console.warn("Stats API not available:", error);
+      return { visitor_count: 0 };
+    }
+  },
+
+  trackVisit: async (): Promise<void> => {
+    try {
+      await fetch("/api/stats", { method: "POST" });
+    } catch (error) {
+      console.warn("Failed to track visit:", error);
+    }
   }
 };
