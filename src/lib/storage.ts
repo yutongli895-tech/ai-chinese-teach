@@ -42,8 +42,9 @@ export const storage = {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({})) as { error?: string };
-        throw new Error(errorData.error || "Failed to save resource");
+        const errorData = await response.json().catch(() => ({})) as { error?: string, details?: string };
+        console.error("Server creation error details:", errorData);
+        throw new Error(errorData.details || errorData.error || "Failed to save resource");
       }
 
       return await storage.getResources();

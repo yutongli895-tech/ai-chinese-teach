@@ -29,20 +29,39 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const { request, env } = context;
     const body = await request.json() as any;
 
-    const { id, title, description, type, author, date, tags, link, likes, content } = body;
+    // Ensure all fields have at least a default value to prevent D1 errors
+    const id = body.id || crypto.randomUUID();
+    const title = body.title || "未命名文章";
+    const description = body.description || "";
+    const type = body.type || "article";
+    const author = body.author || "管理员";
+    const date = body.date || new Date().toISOString().split("T")[0];
+    const tags = Array.isArray(body.tags) ? body.tags : [];
+    const link = body.link || "#";
+    const likes = Number(body.likes) || 0;
+    const content = body.content || "";
     const createdAt = Math.floor(Date.now() / 1000);
 
-    await env.DB.prepare(
+    const result = await env.DB.prepare(
       "INSERT INTO resources (id, title, description, type, author, date, tags, link, likes, content, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     )
-      .bind(id, title, description, type, author, date, JSON.stringify(tags), link, likes, content || "", createdAt)
+      .bind(id, title, description, type, author, date, JSON.stringify(tags), link, likes, content, createdAt)
       .run();
 
-    return new Response(JSON.stringify({ success: true, resource: body }), {
+    if (!result.success) {
+      throw new Error("D1 写入失败");
+    }
+
+    return new Response(JSON.stringify({ success: true, resource: { id, title } }), {
       headers: { "Content-Type": "application/json" },
     });
-  } catch (error) {
-    return new Response(JSON.stringify({ error: "Failed to create resource", details: String(error) }), {
+  } catch (error: any) {
+    // Return the actual error message so we can diagnose it in the browser console
+    return new Response(JSON.stringify({ 
+      error: "数据库写入失败", 
+      details: error.message,
+      stack: error.stack 
+    }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
