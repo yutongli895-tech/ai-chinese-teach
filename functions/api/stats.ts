@@ -9,7 +9,12 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   if (request.method === "GET") {
     try {
       const result = await env.DB.prepare("SELECT value FROM stats WHERE key = 'visitor_count'").first<{ value: number }>();
-      return Response.json({ visitor_count: result?.value || 0 });
+      if (!result) {
+        // If not found, try to insert it
+        await env.DB.prepare("INSERT OR IGNORE INTO stats (key, value) VALUES ('visitor_count', 0)").run();
+        return Response.json({ visitor_count: 0 });
+      }
+      return Response.json({ visitor_count: result.value || 0 });
     } catch (error: any) {
       return Response.json({ error: error.message }, { status: 500 });
     }

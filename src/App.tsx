@@ -18,7 +18,9 @@ import { ArrowUp, X } from "lucide-react";
 
 function App() {
   const [resources, setResources] = useState<Resource[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // ... (rest of state)
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authType, setAuthType] = useState<"login" | "register">("login");
   const [userRole, setUserRole] = useState<"guest" | "user" | "admin">(() => {
@@ -67,11 +69,17 @@ function App() {
     }
   }, [isDarkMode]);
 
-  // Load resources on mount and when role changes (e.g. returning from admin)
+  // Load resources on mount and when role changes
   useEffect(() => {
     const loadResources = async () => {
-      const data = await storage.getResources();
-      setResources(data);
+      try {
+        const data = await storage.getResources();
+        setResources(data);
+        setError(null);
+      } catch (err) {
+        console.error("Failed to load resources:", err);
+        setError("无法连接到数据库，正在显示演示数据。");
+      }
     };
     loadResources();
   }, [userRole]);
@@ -237,6 +245,20 @@ function App() {
         <DailyWisdom />
 
         <section className="container mx-auto px-4 py-16 md:px-6">
+          {error && (
+            <div className="mb-8 rounded-xl border border-amber-200 bg-amber-50/50 p-4 text-sm text-amber-800 dark:border-amber-900/30 dark:bg-amber-900/20 dark:text-amber-400 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <X className="h-4 w-4" />
+                <span>{error}</span>
+              </div>
+              <button 
+                onClick={() => window.location.reload()}
+                className="underline font-medium hover:text-amber-900"
+              >
+                重试
+              </button>
+            </div>
+          )}
           <div className="mb-10 flex flex-col items-center justify-between gap-6 sm:flex-row border-b border-stone-200/60 pb-4">
             <div className="flex space-x-6 overflow-x-auto pb-2 sm:pb-0">
               {(["all", "article", "resource", "tool"] as const).map((tab) => {
