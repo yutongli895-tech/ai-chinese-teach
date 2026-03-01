@@ -19,11 +19,12 @@ export interface Resource {
 interface ResourceCardProps {
   resource: Resource;
   index: number;
+  isDarkMode?: boolean;
   onTagClick?: (tag: string) => void;
   onClick?: () => void;
 }
 
-export const ResourceCard: React.FC<ResourceCardProps> = ({ resource, index, onTagClick, onClick }) => {
+export const ResourceCard: React.FC<ResourceCardProps> = ({ resource, index, isDarkMode, onTagClick, onClick }) => {
   const [likes, setLikes] = useState(resource.likes);
   const [isLiked, setIsLiked] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
@@ -106,11 +107,10 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({ resource, index, onT
       onClick={handleCardClick}
       className={cn(
         "group relative flex flex-col justify-between overflow-hidden rounded-2xl p-7 transition-all duration-500",
-        "bg-white/40 dark:bg-stone-900/40 backdrop-blur-sm",
-        "border border-stone-200/50 dark:border-stone-800/50",
-        "shadow-[0_4px_20px_rgba(0,0,0,0.02)] dark:shadow-[0_4px_30px_rgba(0,0,0,0.3)]",
-        "hover:bg-white/80 dark:hover:bg-stone-900/80 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_20px_60px_rgba(0,0,0,0.5)]",
-        "hover:border-stone-300/50 dark:hover:border-stone-700/50",
+        isDarkMode 
+          ? "bg-stone-900/60 border-stone-800/50 shadow-[0_4px_30px_rgba(0,0,0,0.3)] hover:bg-stone-900/80 hover:shadow-[0_20px_60px_rgba(0,0,0,0.5)] hover:border-stone-700/50" 
+          : "bg-white/90 border-stone-200/60 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:bg-white hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:border-stone-300/60",
+        "backdrop-blur-sm",
         onClick && "cursor-pointer"
       )}
     >
@@ -136,7 +136,7 @@ export const ResourceCard: React.FC<ResourceCardProps> = ({ resource, index, onT
         </div>
         
         <div className="space-y-3">
-          <h3 className="font-serif text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-100 group-hover:text-stone-700 dark:group-hover:text-stone-300 transition-colors leading-tight pr-6">
+          <h3 className="font-serif text-2xl font-bold tracking-tight text-[var(--text-ink)] group-hover:opacity-80 transition-colors leading-tight pr-6">
             <a 
               href={resource.link} 
               target="_blank" 

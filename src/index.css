@@ -14,6 +14,7 @@
     --text-ink: #1c1917;
     --accent-vermilion: #b91c1c;
     --accent-jade: #065f46;
+    --season-primary: #065f46; /* Default spring */
   }
 
   .dark {
@@ -21,7 +22,13 @@
     --text-ink: #e7e5e4;
     --accent-vermilion: #ef4444;
     --accent-jade: #10b981;
+    --season-primary: #10b981;
   }
+
+  .season-spring { --season-primary: #10b981; }
+  .season-summer { --season-primary: #0ea5e9; }
+  .season-autumn { --season-primary: #f59e0b; }
+  .season-winter { --season-primary: #6366f1; }
 
   body {
     @apply bg-[var(--bg-paper)] text-[var(--text-ink)] transition-colors duration-500;

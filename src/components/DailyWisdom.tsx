@@ -12,7 +12,18 @@ const quotes = [
 export function DailyWisdom() {
   // Simple random selection for demo purposes
   const todayQuote = quotes[Math.floor(Math.random() * quotes.length)];
-
+  
+  // We need to know if it's dark mode to apply conditional classes
+  // However, this component doesn't have isDarkMode prop.
+  // Since it's a small component, I'll just rely on the CSS variables I set in index.css
+  // which are already working for the body.
+  
+  // Wait, I see text-stone-800 dark:text-stone-200.
+  // If dark: is not working, it will stay text-stone-800.
+  
+  // Let's check if I can pass isDarkMode to it or use a hook.
+  // For now, I'll just leave it or use the CSS variables defined in index.css.
+  
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -25,10 +36,10 @@ export function DailyWisdom() {
       </div>
       
       <div className="relative z-10 space-y-8">
-        <h2 className="font-serif text-3xl font-bold tracking-wider text-stone-800 dark:text-stone-200 md:text-4xl leading-relaxed">
+        <h2 className="font-serif text-3xl font-bold tracking-wider text-[var(--text-ink)] md:text-4xl leading-relaxed">
           「{todayQuote.text}」
         </h2>
-        <div className="flex items-center justify-center gap-4 text-sm text-stone-500 dark:text-stone-500 font-light tracking-[0.3em] uppercase">
+        <div className="flex items-center justify-center gap-4 text-sm text-stone-500 font-light tracking-[0.3em] uppercase">
             <span className="w-12 h-[1px] bg-stone-200 dark:bg-stone-800"></span>
             <span>{todayQuote.author} · {todayQuote.source}</span>
             <span className="w-12 h-[1px] bg-stone-200 dark:bg-stone-800"></span>

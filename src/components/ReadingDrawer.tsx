@@ -3,14 +3,16 @@ import { X, BookOpen, ChevronLeft, Share2, Heart, Printer, Type, Minus, Plus } f
 import { useState } from "react";
 import { Resource } from "./ResourceCard";
 import ReactMarkdown from "react-markdown";
+import { cn } from "../lib/utils";
 
 interface ReadingDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   resource: Resource | null;
+  isDarkMode: boolean;
 }
 
-export function ReadingDrawer({ isOpen, onClose, resource }: ReadingDrawerProps) {
+export function ReadingDrawer({ isOpen, onClose, resource, isDarkMode }: ReadingDrawerProps) {
   const [fontSize, setFontSize] = useState(18);
 
   if (!resource) return null;
@@ -34,41 +36,55 @@ export function ReadingDrawer({ isOpen, onClose, resource }: ReadingDrawerProps)
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 z-50 h-full w-full max-w-2xl bg-[#fcfaf8] shadow-2xl overflow-hidden flex flex-col border-l border-stone-200/50"
+            className={cn(
+              "fixed right-0 top-0 z-50 h-full w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col border-l transition-colors duration-500",
+              isDarkMode ? "bg-stone-950 border-stone-800" : "bg-[#fcfaf8] border-stone-200/50"
+            )}
           >
             {/* Header */}
-            <div className="flex h-16 items-center justify-between border-b border-stone-200/60 bg-white/80 px-6 backdrop-blur-md sticky top-0 z-10">
+            <div className={cn(
+              "flex h-16 items-center justify-between border-b px-6 backdrop-blur-md sticky top-0 z-10 transition-colors duration-500",
+              isDarkMode ? "bg-stone-900/80 border-stone-800" : "bg-white/80 border-stone-200/60"
+            )}>
               <div className="flex items-center gap-4">
                 <button 
                   onClick={onClose}
-                  className="group flex items-center gap-1 text-sm font-medium text-stone-500 hover:text-stone-900 transition-colors"
+                  className={cn(
+                    "group flex items-center gap-1 text-sm font-medium transition-colors",
+                    isDarkMode ? "text-stone-400 hover:text-stone-100" : "text-stone-500 hover:text-stone-900"
+                  )}
                 >
                   <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
                   返回
                 </button>
-                <div className="h-4 w-[1px] bg-stone-300"></div>
+                <div className="h-4 w-[1px] bg-stone-300 dark:bg-stone-700"></div>
                 <div className="flex items-center gap-2 text-stone-400">
-                    <button onClick={() => setFontSize(Math.max(14, fontSize - 2))} className="hover:text-stone-900 p-1"><Minus className="h-3 w-3" /></button>
+                    <button onClick={() => setFontSize(Math.max(14, fontSize - 2))} className="hover:text-stone-900 dark:hover:text-stone-100 p-1"><Minus className="h-3 w-3" /></button>
                     <Type className="h-4 w-4" />
-                    <button onClick={() => setFontSize(Math.min(24, fontSize + 2))} className="hover:text-stone-900 p-1"><Plus className="h-3 w-3" /></button>
+                    <button onClick={() => setFontSize(Math.min(24, fontSize + 2))} className="hover:text-stone-900 dark:hover:text-stone-100 p-1"><Plus className="h-3 w-3" /></button>
                 </div>
               </div>
               
               <div className="flex items-center gap-3">
-                <button className="rounded-full p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors">
+                <button className="rounded-full p-2 text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-600 dark:hover:text-stone-300 transition-colors">
                   <Heart className="h-4 w-4" />
                 </button>
-                <button className="rounded-full p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors">
+                <button className="rounded-full p-2 text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-600 dark:hover:text-stone-300 transition-colors">
                   <Share2 className="h-4 w-4" />
                 </button>
-                <button className="rounded-full p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-600 transition-colors">
+                <button className="rounded-full p-2 text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-600 dark:hover:text-stone-300 transition-colors">
                   <Printer className="h-4 w-4" />
                 </button>
               </div>
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')] dark:bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] dark:bg-stone-950">
+            <div className={cn(
+              "flex-1 overflow-y-auto transition-colors duration-500",
+              isDarkMode 
+                ? "bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] bg-stone-950" 
+                : "bg-[url('https://www.transparenttextures.com/patterns/cream-paper.png')] bg-[#fcfaf8]"
+            )}>
               <div className="mx-auto max-w-xl px-8 py-12">
                 <div className="mb-12 space-y-6 text-center">
                   <span className="inline-block rounded-full bg-stone-100 dark:bg-stone-800 px-4 py-1 text-[10px] font-bold text-stone-500 dark:text-stone-400 tracking-[0.2em] uppercase">

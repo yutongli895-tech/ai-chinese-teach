@@ -36,12 +36,24 @@ function App() {
     return false;
   });
 
+  const [currentSeason, setCurrentSeason] = useState<"spring" | "summer" | "autumn" | "winter">("spring");
+
+  useEffect(() => {
+    const month = new Date().getMonth() + 1;
+    if (month >= 3 && month <= 5) setCurrentSeason("spring");
+    else if (month >= 6 && month <= 8) setCurrentSeason("summer");
+    else if (month >= 9 && month <= 11) setCurrentSeason("autumn");
+    else setCurrentSeason("winter");
+  }, []);
+
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add("dark");
+      document.body.classList.add("dark");
       localStorage.setItem("theme", "dark");
     } else {
       document.documentElement.classList.remove("dark");
+      document.body.classList.remove("dark");
       localStorage.setItem("theme", "light");
     }
   }, [isDarkMode]);
@@ -135,19 +147,28 @@ function App() {
     return matchesSearch && matchesTab && matchesTag;
   });
 
+  const seasonBackgrounds = {
+    spring: "https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&q=80&w=2000",
+    summer: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&q=80&w=2000",
+    autumn: "https://images.unsplash.com/photo-1506354666786-959d6d497f1a?auto=format&fit=crop&q=80&w=2000",
+    winter: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=2000",
+  };
+
   return (
     <div className={cn(
       "min-h-screen font-sans selection:bg-stone-200 selection:text-stone-900 relative transition-colors duration-500",
-      isDarkMode ? "dark" : ""
+      isDarkMode ? "dark" : "",
+      `season-${currentSeason}`
     )}>
       {/* Global Background Layer */}
       <div className="fixed inset-0 z-[-1] overflow-hidden">
         {/* Ink Wash Landscape Image */}
         <motion.img 
-          initial={false}
-          animate={{ opacity: isDarkMode ? 0.3 : 0.7 }}
-          src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=2000" 
-          alt="Chinese Landscape Background" 
+          key={currentSeason}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isDarkMode ? 0.2 : 0.6 }}
+          src={seasonBackgrounds[currentSeason]} 
+          alt={`${currentSeason} background`} 
           className="w-full h-full object-cover transition-opacity duration-1000"
         />
         
@@ -197,7 +218,7 @@ function App() {
       />
       
       <main className="flex-1 relative">
-        <Hero visitorCount={visitorCount} />
+        <Hero visitorCount={visitorCount} isDarkMode={isDarkMode} />
         
         <DailyWisdom />
 
@@ -261,6 +282,7 @@ function App() {
                 <ResourceCard 
                   resource={resource} 
                   index={index} 
+                  isDarkMode={isDarkMode}
                   onTagClick={(tag) => setSelectedTag(tag)}
                   onClick={() => handleResourceClick(resource)}
                 />
@@ -316,6 +338,7 @@ function App() {
         isOpen={!!selectedResource}
         onClose={() => setSelectedResource(null)}
         resource={selectedResource}
+        isDarkMode={isDarkMode}
       />
 
       <AIAssistant />
