@@ -20,7 +20,6 @@ function App() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // ... (rest of state)
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authType, setAuthType] = useState<"login" | "register">("login");
   const [userRole, setUserRole] = useState<"guest" | "user" | "admin">(() => {

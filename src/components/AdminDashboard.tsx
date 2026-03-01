@@ -231,7 +231,7 @@ export function AdminDashboard({ onLogout, isDarkMode, toggleDarkMode }: AdminDa
                     {/* Chart */}
                     <div className={cn("rounded-2xl border p-8 shadow-sm transition-colors duration-500", isDarkMode ? "bg-stone-900 border-stone-800" : "bg-white border-stone-200")}>
                         <h3 className={cn("mb-6 text-base font-medium", isDarkMode ? "text-stone-100" : "text-stone-900")}>访客趋势</h3>
-                        <div className="h-[350px] w-full">
+                        <div className="h-[350px] w-full min-h-[350px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                     <defs>
