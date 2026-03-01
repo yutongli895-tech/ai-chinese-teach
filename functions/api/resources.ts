@@ -30,11 +30,12 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const body = await request.json() as any;
 
     const { id, title, description, type, author, date, tags, link, likes, content } = body;
+    const createdAt = Math.floor(Date.now() / 1000);
 
     await env.DB.prepare(
-      "INSERT INTO resources (id, title, description, type, author, date, tags, link, likes, content) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      "INSERT INTO resources (id, title, description, type, author, date, tags, link, likes, content, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     )
-      .bind(id, title, description, type, author, date, JSON.stringify(tags), link, likes, content || "")
+      .bind(id, title, description, type, author, date, JSON.stringify(tags), link, likes, content || "", createdAt)
       .run();
 
     return new Response(JSON.stringify({ success: true, resource: body }), {

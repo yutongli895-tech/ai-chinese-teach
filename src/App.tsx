@@ -21,7 +21,16 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authType, setAuthType] = useState<"login" | "register">("login");
-  const [userRole, setUserRole] = useState<"guest" | "user" | "admin">("guest");
+  const [userRole, setUserRole] = useState<"guest" | "user" | "admin">(() => {
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem("userRole") as any) || "guest";
+    }
+    return "guest";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("userRole", userRole);
+  }, [userRole]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "article" | "resource" | "tool">("all");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -97,14 +106,19 @@ function App() {
   };
 
   const handleAddResource = async (newResource: Omit<Resource, "id" | "date" | "likes">) => {
-    const resource: Resource = {
-      ...newResource,
-      id: Math.random().toString(36).substr(2, 9),
-      date: new Date().toISOString().split("T")[0],
-      likes: 0,
-    };
-    const updatedResources = await storage.saveResource(resource);
-    setResources(updatedResources);
+    try {
+      const resource: Resource = {
+        ...newResource,
+        id: crypto.randomUUID(),
+        date: new Date().toISOString().split("T")[0],
+        likes: 0,
+      };
+      const updatedResources = await storage.saveResource(resource);
+      setResources(updatedResources);
+      setIsModalOpen(false);
+    } catch (error) {
+      alert("提交失败: " + (error as Error).message);
+    }
   };
 
   const handleLoginSuccess = (role: "admin" | "user") => {

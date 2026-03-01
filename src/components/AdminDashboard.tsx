@@ -81,13 +81,12 @@ export function AdminDashboard({ onLogout, isDarkMode, toggleDarkMode }: AdminDa
         if (updatedResources && updatedResources.length > 0) {
           setMockContent(updatedResources);
         } else {
-          // If update returns empty but we know we had data, reload
           await loadResources();
         }
       } else {
         const resource: Resource = {
           ...newResource,
-          id: Math.random().toString(36).substr(2, 9),
+          id: crypto.randomUUID(),
           date: new Date().toISOString().split("T")[0],
           likes: 0,
         };

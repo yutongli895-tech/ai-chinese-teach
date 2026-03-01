@@ -21,24 +21,31 @@ export function AuthModal({ isOpen, onClose, type, onSwitchType, onLoginSuccess 
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate network request
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsLoading(false);
-    
-    // Simple mock logic for demo
-    if (type === "login") {
-        if (email === "admin@example.com" && password === "admin") {
-            onLoginSuccess("admin");
-        } else {
-            onLoginSuccess("user");
-        }
-    } else {
-        // Register logic
-        onLoginSuccess("user");
+    try {
+      const response = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: type,
+          email,
+          password,
+        }),
+      });
+
+      const data = await response.json() as { success: boolean, role?: "admin" | "user", error?: string };
+      
+      if (data.success && data.role) {
+        onLoginSuccess(data.role);
+        onClose();
+      } else {
+        alert(data.error || "登录/注册失败，请检查邮箱和密码。");
+      }
+    } catch (error) {
+      console.error("Auth error:", error);
+      alert("网络错误，请稍后再试。");
+    } finally {
+      setIsLoading(false);
     }
-    
-    onClose();
   };
 
   const handleSendCode = async () => {
