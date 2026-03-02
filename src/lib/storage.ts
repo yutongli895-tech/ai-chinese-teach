@@ -14,7 +14,10 @@ export const storage = {
       }
       
       if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("API 返回格式不正确 (预期 JSON)");
+        console.error("Unexpected content type:", contentType);
+        const text = await response.text();
+        console.error("Response body snippet:", text.substring(0, 200));
+        throw new Error(`API 返回格式不正确 (预期 JSON)。收到: ${contentType}`);
       }
 
       const data = await response.json() as Resource[];
