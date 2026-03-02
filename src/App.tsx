@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Helmet } from "react-helmet-async";
 import { Header } from "./components/Header";
 import { Hero } from "./components/Hero";
 import { ResourceCard, Resource } from "./components/ResourceCard";
@@ -73,6 +74,16 @@ function App() {
       try {
         const data = await storage.getResources();
         setResources(data);
+        
+        // Check for ?id= in URL to open specific resource
+        const urlParams = new URLSearchParams(window.location.search);
+        const resourceId = urlParams.get('id');
+        if (resourceId) {
+          const resource = data.find(r => r.id === resourceId);
+          if (resource) {
+            setSelectedResource(resource);
+          }
+        }
       } catch (err) {
         console.error("Failed to load resources:", err);
       }
@@ -139,6 +150,10 @@ function App() {
       window.open(resource.link, '_blank');
     } else {
       setSelectedResource(resource);
+      // Update URL without reloading
+      const url = new URL(window.location.href);
+      url.searchParams.set('id', resource.id);
+      window.history.pushState({}, '', url.toString());
     }
   };
 
@@ -178,6 +193,13 @@ function App() {
       isDarkMode ? "dark" : "",
       `season-${currentSeason}`
     )}>
+      <Helmet>
+        <title>{selectedResource ? `${selectedResource.title} - AI 语文智教` : "AI 语文智教 - 赋能语文教学资源建设"}</title>
+        <meta name="description" content={selectedResource ? selectedResource.description : "AI 语文智教平台致力于利用人工智能技术赋能语文教学，提供深度文章、教学资源、AI 工具等。"} />
+        {selectedResource && <meta property="og:title" content={`${selectedResource.title} - AI 语文智教`} />}
+        {selectedResource && <meta property="og:description" content={selectedResource.description} />}
+        {selectedResource && <meta property="og:url" content={`https://aiyuwen.online/?id=${selectedResource.id}`} />}
+      </Helmet>
       {/* Global Background Layer */}
       <div className="fixed inset-0 z-[-1] overflow-hidden">
         {/* Ink Wash Landscape Image */}
@@ -354,7 +376,13 @@ function App() {
 
       <ReadingDrawer 
         isOpen={!!selectedResource}
-        onClose={() => setSelectedResource(null)}
+        onClose={() => {
+          setSelectedResource(null);
+          // Clean up URL when closing
+          const url = new URL(window.location.href);
+          url.searchParams.delete('id');
+          window.history.replaceState({}, '', url.toString());
+        }}
         resource={selectedResource}
         isDarkMode={isDarkMode}
       />
