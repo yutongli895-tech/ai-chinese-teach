@@ -29,8 +29,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
 
     // Call Gemini API directly using fetch to avoid SDK issues in Edge runtime if any
-    // Using gemini-2.5-flash as requested/recommended
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${env.GEMINI_API_KEY}`;
+    // Using gemini-3-flash-preview as requested/recommended
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${env.GEMINI_API_KEY}`;
     
     const response = await fetch(url, {
       method: "POST",

@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "motion/react";
 import { X, Send, Bot, Sparkles, Loader2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { GoogleGenAI } from "@google/genai";
+// Removed GoogleGenAI import for security.
 
 export function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,57 +31,24 @@ export function AIAssistant() {
     try {
       let aiResponseText = "";
 
-      // Check if we are in development mode or production
-      // In this specific preview environment, we use the client-side SDK for demonstration.
-      // In a real production build deployed to Cloudflare, we would use the /api/chat endpoint.
-      const isDev = (import.meta as any).env?.DEV; 
-      
-      // However, for the purpose of this preview to work immediately for the user, 
-      // we will default to client-side SDK if the API key is available in the environment.
-      // The user asked about Cloudflare deployment, so we will implement the logic to switch.
-      
-      if (isDev && process.env.GEMINI_API_KEY) {
-          // Client-side call for local preview
-          const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-          const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: userMessage,
-          });
-          aiResponseText = response.text || "抱歉，我没有理解您的意思。";
-      } else {
-          // Production call to Cloudflare Functions (or if key is missing locally)
-          // Note: This will fail in the preview if /api/chat doesn't exist, 
-          // but it's the correct code for the user's Cloudflare deployment request.
-          // To make it work in THIS preview, we fallback to the SDK if possible.
-          
-          try {
-            const response = await fetch("/api/chat", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: userMessage }),
-            });
-            
-            if (response.ok) {
-                const data = await response.json() as { reply: string };
-                aiResponseText = data.reply;
-            } else {
-                // Fallback for preview if /api/chat is not set up in the container
-                 if (process.env.GEMINI_API_KEY) {
-                    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-                    const sdkResponse = await ai.models.generateContent({
-                        model: "gemini-2.5-flash",
-                        contents: userMessage,
-                    });
-                    aiResponseText = sdkResponse.text || "抱歉，我没有理解您的意思。";
-                 } else {
-                    throw new Error("API Error");
-                 }
-            }
-          } catch (e) {
-             // Final fallback if everything fails (e.g. no network, no key)
-             console.error(e);
-             aiResponseText = "抱歉，连接 AI 服务失败，请稍后再试。";
-          }
+      // Try the server-side API first (works in preview with server.ts and in production with Cloudflare)
+      try {
+        const response = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: userMessage }),
+        });
+        
+        if (response.ok) {
+            const data = await response.json() as { reply: string };
+            aiResponseText = data.reply;
+        } else {
+            const errorData = await response.json().catch(() => ({})) as { error?: string };
+            throw new Error(errorData.error || `API Error: ${response.status}`);
+        }
+      } catch (e) {
+         console.error("AI Service Error:", e);
+         aiResponseText = "抱歉，连接 AI 服务失败，请稍后再试。";
       }
 
       setMessages(prev => [...prev, { role: "ai", content: aiResponseText }]);
