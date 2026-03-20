@@ -19,13 +19,16 @@ export default defineConfig(({mode}) => {
               req.on('end', async () => {
                 try {
                   const { message } = JSON.parse(body);
-                  const apiKey = process.env.GEMINI_API_KEY;
-                  if (!apiKey) {
+                  const apiKeyEnv = process.env.GEMINI_API_KEY;
+                  if (!apiKeyEnv) {
                     res.statusCode = 500;
                     res.end(JSON.stringify({ error: "Missing API Key in dev" }));
                     return;
                   }
-                  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${apiKey}`, {
+                  const apiKeys = apiKeyEnv.split(',').map(k => k.trim()).filter(Boolean);
+                  const getApiKey = () => apiKeys[Math.floor(Math.random() * apiKeys.length)];
+                  
+                  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${getApiKey()}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ contents: [{ parts: [{ text: message }] }] })

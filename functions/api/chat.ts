@@ -28,9 +28,13 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       });
     }
 
+    // 解析多个 API Key（支持逗号分隔）
+    const apiKeys = env.GEMINI_API_KEY.split(',').map(k => k.trim()).filter(Boolean);
+    const getApiKey = () => apiKeys[Math.floor(Math.random() * apiKeys.length)];
+
     // 1. 优先尝试 Gemini 3.1 Pro Preview
     const proModel = "gemini-3.1-pro-preview";
-    const proUrl = `https://generativelanguage.googleapis.com/v1beta/models/${proModel}:generateContent?key=${env.GEMINI_API_KEY}`;
+    const proUrl = `https://generativelanguage.googleapis.com/v1beta/models/${proModel}:generateContent?key=${getApiKey()}`;
 
     try {
       const response = await fetch(proUrl, {
@@ -58,7 +62,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     // 2. 回退到最稳定的 Gemini 1.5 Flash
     const flashModel = "gemini-1.5-flash";
-    const flashUrl = `https://generativelanguage.googleapis.com/v1/models/${flashModel}:generateContent?key=${env.GEMINI_API_KEY}`;
+    const flashUrl = `https://generativelanguage.googleapis.com/v1/models/${flashModel}:generateContent?key=${getApiKey()}`;
     
     const flashResponse = await fetch(flashUrl, {
       method: "POST",
