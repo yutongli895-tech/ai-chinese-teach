@@ -38,21 +38,35 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: message }] }],
+        contents: [
+          {
+            role: "user",
+            parts: [{ text: message }]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        }
       }),
     });
 
     if (!response.ok) {
         const errorText = await response.text();
-        return new Response(JSON.stringify({ error: `Gemini API Error: ${response.status}`, details: errorText }), {
+        console.error("Gemini API Error:", response.status, errorText);
+        return new Response(JSON.stringify({ 
+            error: `Gemini API Error: ${response.status}`, 
+            details: errorText 
+        }), {
             status: response.status,
             headers: { "Content-Type": "application/json" },
         });
     }
 
-    const data = await response.json();
-    // @ts-ignore
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
+    const data = await response.json() as any;
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "抱歉，我暂时无法回答。";
 
     return new Response(JSON.stringify({ reply: text }), {
       headers: { "Content-Type": "application/json" },
