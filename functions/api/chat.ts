@@ -28,9 +28,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       });
     }
 
-    // Call Gemini API directly using fetch to avoid SDK issues in Edge runtime if any
-    // Using gemini-3-flash-preview as requested/recommended
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${env.GEMINI_API_KEY}`;
+    // Upgrading to Gemini 3.1 Pro Preview for better reasoning
+    // Using v1beta for preview model compatibility
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${env.GEMINI_API_KEY}`;
     
     const response = await fetch(url, {
       method: "POST",
@@ -38,18 +38,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: message }]
-          }
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048,
-        }
+        contents: [{
+          parts: [{ text: message }]
+        }]
       }),
     });
 
@@ -57,7 +48,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         const errorText = await response.text();
         console.error("Gemini API Error:", response.status, errorText);
         return new Response(JSON.stringify({ 
-            error: `Gemini API Error: ${response.status}`, 
+            error: `AI 服务暂时不可用 (${response.status})`,
             details: errorText 
         }), {
             status: response.status,
