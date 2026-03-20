@@ -10,6 +10,7 @@ import { AdminDashboard } from "./components/AdminDashboard";
 import { Footer } from "./components/Footer";
 import { DailyWisdom } from "./components/DailyWisdom";
 import { AIAssistant } from "./components/AIAssistant";
+import { Features } from "./components/Features";
 import { ReadingDrawer } from "./components/ReadingDrawer";
 import { initialResources } from "./data/mockData";
 import { motion, AnimatePresence } from "motion/react";
@@ -118,6 +119,20 @@ function App() {
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const scrollToResources = () => {
+    const element = document.getElementById("resources");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const scrollToFeatures = () => {
+    const element = document.getElementById("features");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   const handleAddResource = async (newResource: Omit<Resource, "id" | "date" | "likes">) => {
@@ -258,11 +273,18 @@ function App() {
       />
       
       <main className="flex-1 relative">
-        <Hero visitorCount={visitorCount} isDarkMode={isDarkMode} />
+        <Hero 
+          visitorCount={visitorCount} 
+          isDarkMode={isDarkMode} 
+          onExploreClick={scrollToResources}
+          onLearnMoreClick={scrollToFeatures}
+        />
         
+        <Features isDarkMode={isDarkMode} />
+
         <DailyWisdom />
 
-        <section className="container mx-auto px-4 py-16 md:px-6">
+        <section id="resources" className="container mx-auto px-4 py-16 md:px-6">
           <div className="mb-10 flex flex-col items-center justify-between gap-6 sm:flex-row border-b border-stone-200/60 pb-4">
             <div className="flex space-x-6 overflow-x-auto pb-2 sm:pb-0">
               {(["all", "article", "resource", "tool"] as const).map((tab) => {

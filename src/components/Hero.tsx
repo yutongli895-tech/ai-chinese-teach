@@ -5,9 +5,11 @@ import { cn } from "../lib/utils";
 interface HeroProps {
   visitorCount?: number;
   isDarkMode: boolean;
+  onExploreClick?: () => void;
+  onLearnMoreClick?: () => void;
 }
 
-export function Hero({ visitorCount = 0, isDarkMode }: HeroProps) {
+export function Hero({ visitorCount = 0, isDarkMode, onExploreClick, onLearnMoreClick }: HeroProps) {
   return (
     <section className={cn(
       "relative w-full min-h-[600px] flex items-center justify-center overflow-hidden border-b transition-colors duration-500",
@@ -90,19 +92,25 @@ export function Hero({ visitorCount = 0, isDarkMode }: HeroProps) {
             transition={{ delay: 0.2, duration: 0.6 }}
             className="flex flex-col sm:flex-row items-center gap-6"
           >
-            <button className={cn(
-              "group relative inline-flex h-14 items-center justify-center overflow-hidden rounded-full px-10 font-medium shadow-lg transition-all hover:scale-105 hover:shadow-xl focus:outline-none",
-              isDarkMode ? "bg-stone-100 text-stone-900 hover:bg-white" : "bg-stone-900 text-white hover:bg-stone-800"
-            )}>
+            <button 
+              onClick={onExploreClick}
+              className={cn(
+                "group relative inline-flex h-14 items-center justify-center overflow-hidden rounded-full px-10 font-medium shadow-lg transition-all hover:scale-105 hover:shadow-xl focus:outline-none",
+                isDarkMode ? "bg-stone-100 text-stone-900 hover:bg-white" : "bg-stone-900 text-white hover:bg-stone-800"
+              )}
+            >
               <span className="mr-2">开始探索</span>
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </button>
-            <button className={cn(
-              "inline-flex h-14 items-center justify-center rounded-full border backdrop-blur-sm px-10 font-medium shadow-sm transition-all",
-              isDarkMode 
-                ? "border-stone-800 bg-stone-900/50 text-stone-400 hover:bg-stone-800 hover:text-stone-100" 
-                : "border-stone-200 bg-white/50 text-stone-600 hover:bg-stone-50 hover:text-stone-900"
-            )}>
+            <button 
+              onClick={onLearnMoreClick}
+              className={cn(
+                "inline-flex h-14 items-center justify-center rounded-full border backdrop-blur-sm px-10 font-medium shadow-sm transition-all",
+                isDarkMode 
+                  ? "border-stone-800 bg-stone-900/50 text-stone-400 hover:bg-stone-800 hover:text-stone-100" 
+                  : "border-stone-200 bg-white/50 text-stone-600 hover:bg-stone-50 hover:text-stone-900"
+              )}
+            >
               了解更多
             </button>
           </motion.div>
