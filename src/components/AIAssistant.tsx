@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "motion/react";
 import { X, Send, Bot, Sparkles, Loader2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-// Removed GoogleGenAI import for security.
+import { GoogleGenAI } from "@google/genai";
 
 export function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,25 +30,31 @@ export function AIAssistant() {
 
     try {
       let aiResponseText = "";
+      const isDev = (import.meta as any).env?.DEV;
 
-      // Try the server-side API first (works in preview with server.ts and in production with Cloudflare)
-      try {
-        const response = await fetch("/api/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: userMessage }),
-        });
-        
-        if (response.ok) {
-            const data = await response.json() as { reply: string };
-            aiResponseText = data.reply;
-        } else {
-            const errorData = await response.json().catch(() => ({})) as { error?: string };
-            throw new Error(errorData.error || `API Error: ${response.status}`);
-        }
-      } catch (e) {
-         console.error("AI Service Error:", e);
-         aiResponseText = "抱歉，连接 AI 服务失败，请稍后再试。";
+      if (isDev && process.env.GEMINI_API_KEY) {
+          // In AI Studio preview, we use the SDK directly for convenience
+          const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+          const response = await ai.models.generateContent({
+            model: "gemini-3-flash-preview",
+            contents: userMessage,
+          });
+          aiResponseText = response.text || "抱歉，我没有理解您的意思。";
+      } else {
+          // In production (Cloudflare), we use the API endpoint
+          const response = await fetch("/api/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ message: userMessage }),
+          });
+          
+          if (response.ok) {
+              const data = await response.json() as { reply: string };
+              aiResponseText = data.reply;
+          } else {
+              const errorData = await response.json().catch(() => ({})) as { error?: string };
+              throw new Error(errorData.error || `API Error: ${response.status}`);
+          }
       }
 
       setMessages(prev => [...prev, { role: "ai", content: aiResponseText }]);
